@@ -19,7 +19,12 @@ import android.view.ViewTreeObserver;
  * 作者:evilbinary on 3/21/16.
  * 邮箱:rootdebug@163.com
  */
-public class BorderView<X extends View> implements ViewTreeObserver.OnGlobalFocusChangeListener, ViewTreeObserver.OnScrollChangedListener, ViewTreeObserver.OnGlobalLayoutListener, ViewTreeObserver.OnTouchModeChangeListener {
+public class BorderView<X extends View> implements
+        ViewTreeObserver.OnGlobalFocusChangeListener,
+        ViewTreeObserver.OnScrollChangedListener,
+        ViewTreeObserver.OnGlobalLayoutListener,
+        ViewTreeObserver.OnTouchModeChangeListener,
+        ViewTreeObserver.OnWindowAttachListener {
     private String TAG = BorderView.class.getSimpleName();
 
     private ViewGroup mViewGroup;
@@ -27,6 +32,16 @@ public class BorderView<X extends View> implements ViewTreeObserver.OnGlobalFocu
 
     private X mView;
     private View mLastView;
+
+    @Override
+    public void onWindowAttached() {
+
+    }
+
+    @Override
+    public void onWindowDetached() {
+        detach();
+    }
 
     public interface Effect {
         public void onFocusChanged(View target, View oldFocus, View newFocus);
@@ -42,6 +57,8 @@ public class BorderView<X extends View> implements ViewTreeObserver.OnGlobalFocu
         public void OnDetach(View targe, View view);
 
         public <T> T toEffect(Class<T> t);
+
+        void onDestroy();
     }
 
     public BorderView(Context context) {
@@ -65,9 +82,10 @@ public class BorderView<X extends View> implements ViewTreeObserver.OnGlobalFocu
         this.mView = view;
         borderEffect = new BorderEffect();
     }
-    public BorderView(X view,Effect effect) {
+
+    public BorderView(X view, Effect effect) {
         this.mView = view;
-        borderEffect =effect;
+        borderEffect = effect;
     }
 
     public BorderView(Context context, int resId) {
@@ -144,6 +162,7 @@ public class BorderView<X extends View> implements ViewTreeObserver.OnGlobalFocu
                     viewTreeObserver.addOnScrollChangedListener(this);
                     viewTreeObserver.addOnGlobalLayoutListener(this);
                     viewTreeObserver.addOnTouchModeChangeListener(this);
+                    viewTreeObserver.addOnWindowAttachListener(this);
                 }
                 mViewGroup = viewGroup;
             }
@@ -165,13 +184,20 @@ public class BorderView<X extends View> implements ViewTreeObserver.OnGlobalFocu
                 ViewTreeObserver viewTreeObserver = mViewGroup.getViewTreeObserver();
                 viewTreeObserver.removeOnGlobalFocusChangeListener(this);
                 viewTreeObserver.removeOnScrollChangedListener(this);
-                viewTreeObserver.removeOnGlobalLayoutListener(this);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    viewTreeObserver.removeOnGlobalLayoutListener(this);
+                }
                 viewTreeObserver.removeOnTouchModeChangeListener(this);
+                viewTreeObserver.removeOnWindowAttachListener(this);
                 borderEffect.OnDetach(mView, viewGroup);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+    public void destroy(){
+        detach();
+        borderEffect.onDestroy();
     }
 
 }

@@ -16,6 +16,7 @@ import org.evilbinary.tv.widget.TvGridLayoutManagerScrolling;
 public class DemoTwoRecyclerViewActivity extends Activity {
 
     private BorderView border;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,7 +36,7 @@ public class DemoTwoRecyclerViewActivity extends Activity {
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.firstRecyclerView);
         // 创建一个线性布局管理器
 
-        GridLayoutManager layoutManager = new GridLayoutManager(this,1);
+        GridLayoutManager layoutManager = new GridLayoutManager(this, 1);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setFocusable(false);
@@ -56,19 +57,19 @@ public class DemoTwoRecyclerViewActivity extends Activity {
 
         border.attachTo(recyclerView);
 
-        createData(recyclerView,R.layout.item);
+        createData(recyclerView, R.layout.item);
 
     }
 
 
-    private void createData(RecyclerView recyclerView,int id) {
+    private void createData(RecyclerView recyclerView, int id) {
         //创建数据集
         String[] dataset = new String[100];
         for (int i = 0; i < dataset.length; i++) {
             dataset[i] = "item" + i;
         }
         // 创建Adapter，并指定数据集
-        MyAdapter adapter = new MyAdapter(this, dataset,id);
+        MyAdapter adapter = new MyAdapter(this, dataset, id);
         // 设置Adapter
         recyclerView.setAdapter(adapter);
         recyclerView.scrollToPosition(0);

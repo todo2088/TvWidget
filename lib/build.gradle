@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
-
+apply plugin: 'maven-publish'
 android {
-    compileSdkVersion 22
-    buildToolsVersion "23.0.2"
+    compileSdkVersion 28
+    buildToolsVersion "28.0.3"
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 19
+        minSdkVersion 18
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
     }
@@ -16,16 +16,69 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    android.libraryVariants.all { variant ->
+        changeOutput(variant)
+    }
     android {
         lintOptions {
             abortOnError false
         }
     }
+   
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:22.+'
-    compile 'com.android.support:cardview-v7:22+'
-    compile 'com.android.support:recyclerview-v7:22+'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support:cardview-v7:28.0.0'
+    implementation 'com.android.support:recyclerview-v7:28.0.0'
+}
+
+def changeOutput(variant) {
+    println(variant)
+    def name = "tv_widget_v" + '1.0.2_' + variant.buildType.name
+    println(name)
+    variant.outputs.all { output ->
+        outputFileName = name + '.aar'
+    }
+    variant.assembleProvider.get().doLast { assemble ->
+        copy {
+            from variant.outputs*.outputFile
+            def moduleDir = project.buildDir.getParent()
+            File aar = new File(moduleDir, "/aar")
+            if (!aar.exists()) {
+                aar.mkdir()
+            }
+            into "${aar}"
+        }
+    }
+}
+
+ // Because the components are created only during the afterEvaluate phase, you must
+    // configure your publications using the afterEvaluate() lifecycle method.
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                // Applies the component for the release build variant.
+                from components.release
+
+                // You can then customize attributes of the publication as shown below.
+                groupId = 'org.evilbinary.tv_widget'
+                artifactId = 'final'
+                version = '1.0'
+            }
+            // Creates a Maven publication called “debug”.
+            debug(MavenPublication) {
+                // Applies the component for the debug build variant.
+                from components.debug
+
+                groupId = 'org.evilbinary.tv_widget'
+                artifactId = 'final-debug'
+                version = '1.0'
+            }
+        }
+    }
 }

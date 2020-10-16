@@ -37,9 +37,14 @@ public class BorderEffect implements Effect {
     protected View lastFocus, oldLastFocus;
     protected AnimatorSet mAnimatorSet;
     protected List<Animator> mAnimatorList = new ArrayList<Animator>();
+    protected List<FocusListener> mFocusListener = new ArrayList<FocusListener>(1);
+    protected List<Animator.AnimatorListener> mAnimatorListener = new ArrayList<Animator.AnimatorListener>(1);
+    protected List<View> attacheViews = new ArrayList<>();
+    protected Map<View, AdapterView.OnItemSelectedListener> onItemSelectedListenerList = new HashMap<>();
+
     protected View mTarget;
 
-    protected boolean mEnableTouch=true;
+    protected boolean mEnableTouch = true;
 
     public BorderEffect() {
 
@@ -52,10 +57,6 @@ public class BorderEffect implements Effect {
     public interface FocusListener {
         public void onFocusChanged(View oldFocus, View newFocus);
     }
-
-    protected List<FocusListener> mFocusListener = new ArrayList<FocusListener>(1);
-    protected List<Animator.AnimatorListener> mAnimatorListener = new ArrayList<Animator.AnimatorListener>(1);
-
 
     public FocusListener focusScaleListener = new FocusListener() {
         @Override
@@ -86,7 +87,7 @@ public class BorderEffect implements Effect {
                     mTarget.setVisibility(View.VISIBLE);
                 }
                 animatorSet.start();
-            }catch (Exception ex){
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
@@ -206,7 +207,7 @@ public class BorderEffect implements Effect {
     protected List<Animator> getScaleAnimator(View view, boolean isScale) {
 
         List<Animator> animatorList = new ArrayList<Animator>(2);
-        if(!mScalable) return animatorList;
+        if (!mScalable) return animatorList;
         try {
             float scaleBefore = 1.0f;
             float scaleAfter = mScale;
@@ -218,7 +219,7 @@ public class BorderEffect implements Effect {
             ObjectAnimator scaleY = new ObjectAnimator().ofFloat(view, "scaleY", scaleBefore, scaleAfter);
             animatorList.add(scaleX);
             animatorList.add(scaleY);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return animatorList;
@@ -257,11 +258,11 @@ public class BorderEffect implements Effect {
                 oldWidth = newWidth;
             }
 
-            PropertyValuesHolder valuesWithdHolder = PropertyValuesHolder.ofInt("width", oldWidth, newWidth);
+            PropertyValuesHolder valuesWidthHolder = PropertyValuesHolder.ofInt("width", oldWidth, newWidth);
             PropertyValuesHolder valuesHeightHolder = PropertyValuesHolder.ofInt("height", oldHeight, newHeight);
             PropertyValuesHolder valuesXHolder = PropertyValuesHolder.ofFloat("translationX", oldXY[0], newXY[0]);
             PropertyValuesHolder valuesYHolder = PropertyValuesHolder.ofFloat("translationY", oldXY[1], newXY[1]);
-            final ObjectAnimator scaleAnimator = ObjectAnimator.ofPropertyValuesHolder(mTarget, valuesWithdHolder, valuesHeightHolder, valuesYHolder, valuesXHolder);
+            final ObjectAnimator scaleAnimator = ObjectAnimator.ofPropertyValuesHolder(mTarget, valuesWidthHolder, valuesHeightHolder, valuesYHolder, valuesXHolder);
 
             scaleAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
@@ -452,7 +453,7 @@ public class BorderEffect implements Effect {
     public void onTouchModeChanged(View target, View attachView, boolean isInTouchMode) {
         try {
             //Log.d(TAG, "onTouchModeChanged:"+isInTouchMode);
-            if (mEnableTouch&&isInTouchMode) {
+            if (mEnableTouch && isInTouchMode) {
                 target.setVisibility(View.INVISIBLE);
                 if (lastFocus != null) {
                     AnimatorSet animatorSet = new AnimatorSet();
@@ -468,10 +469,6 @@ public class BorderEffect implements Effect {
     }
 
     protected boolean isScrolling = false;
-
-    protected List<View> attacheViews = new ArrayList<>();
-    protected Map<View, AdapterView.OnItemSelectedListener> onItemSelectedListenerList = new HashMap<>();
-
 
     @Override
     public void onAttach(View target, View attachView) {
@@ -608,7 +605,7 @@ public class BorderEffect implements Effect {
 
 
                 oldFocus = newFocus;
-            }catch (Exception ex){
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
 
@@ -638,9 +635,19 @@ public class BorderEffect implements Effect {
         return (T) this;
     }
 
-    public void setEnableTouch(boolean enableTouch){
-        this.mEnableTouch=enableTouch;
+    @Override
+    public void onDestroy() {
+        mAnimatorList.clear();
+        mFocusListener.clear();
+        mAnimatorListener.clear();
+        onItemSelectedListenerList.clear();
+        attacheViews.clear();
     }
+
+    public void setEnableTouch(boolean enableTouch) {
+        this.mEnableTouch = enableTouch;
+    }
+
     public boolean isScalable() {
         return mScalable;
     }
